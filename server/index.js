@@ -4,12 +4,13 @@ const app = express();
 const sqlQuery = require("./sqlQueryHelper");
 const cors = require("cors");
 var db = require("./database");
+const e = require("express");
 
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Register Manager user
+// Register Manager User
 // @route: /api/user/register
 // @type: PUT
 app.put("/api/user/register", (req, res) => {
@@ -29,22 +30,30 @@ app.put("/api/user/register", (req, res) => {
   }
 });
 
-// Get Manager user
-// @route: /api/user/
-// @type: GET
+// Login
+// @route: /api/user/login
+// @type: POST
 
-app.get("/api/user", (req, res) => {
+app.post("/api/user/login", (req, res) => {
   let query = sqlQuery.getManagerUser;
-  try {
-    db.query(query, (err, result) => {
-      const response = result[0];
-      res.send({
-        data: response,
-      });
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  const username = req.body.username;
+  const password = req.body.password;
+
+  db.query(query, [username, password], (err, result) => {
+    if (err) {
+      res.send({ err: err });
+    } else {
+      if (result) {
+        res.send({
+          message: "Login successfully",
+          data: result,
+          status: 200,
+        });
+      } else {
+        res.send({ message: "Wrong username or password" });
+      }
+    }
+  });
 });
 
 app.get("/", (req, res) => {});
